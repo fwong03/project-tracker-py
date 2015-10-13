@@ -37,13 +37,27 @@ def make_new_student(first_name, last_name, github):
     Given a first name, last name, and GitHub account, add student to the
     database and print a confirmation message.
     """
-    pass
+    QUERY = """
+        INSERT INTO Students
+        VALUES (:first_name, :last_name, :github)
+        """
+
+    db_cursor = db.session.execute(QUERY, {'first_name': first_name, 'last_name': last_name, 'github': github})
+    db.session.commit()
+
+    print "Sucessfully added student: %s %s, %s" % (first_name, last_name, github)
 
 
 def get_project_by_title(title):
     """Given a project title, print information about the project."""
-    pass
-
+    QUERY = """
+        SELECT *
+        FROM Projects 
+        WHERE title = :title
+        """
+    db_cursor = db.session.execute(QUERY, {'title': title})
+    row = db_cursor.fetchone()
+    print "Project: %s\nDescription: %s\nMax Grade: %r" %(row[1], row[2], row[3])
 
 def get_grade_by_github_title(github, title):
     """Print grade student received for a project."""
@@ -77,6 +91,10 @@ def handle_input():
             first_name, last_name, github = args   # unpack!
             make_new_student(first_name, last_name, github)
 
+        elif command == "project":
+            title = args[0]
+            get_project_by_title(title)
+
         else:
             if command != "quit":
                 print "Invalid Entry. Try again."
@@ -86,9 +104,9 @@ if __name__ == "__main__":
     app = Flask(__name__)
     connect_to_db(app)
 
-    # handle_input()
+    handle_input()
 
     # To be tidy, we'll close our database connection -- though, since this
     # is where our program ends, we'd quit anyway.
 
-    # db.session.close()
+    db.session.close()
